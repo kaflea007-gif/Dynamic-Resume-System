@@ -36,6 +36,7 @@ $entries = $stmt->fetchAll();
     </p>
 
     <a href="entry_form.php">Add Resume Entry</a>
+    | <a href="profile.php">Edit Profile Photo</a>
     |
     <a href="logout.php">Logout</a>
 
@@ -56,7 +57,7 @@ $entries = $stmt->fetchAll();
 
             <?php foreach ($entries as $entry): ?>
                 <tr>
-                    <td><?= htmlspecialchars($entry['category'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($entry['entry_type'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($entry['title'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($entry['organization'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($entry['start_date'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -65,7 +66,6 @@ $entries = $stmt->fetchAll();
                             ? htmlspecialchars($entry['end_date'], ENT_QUOTES, 'UTF-8')
                             : 'Present' ?>
                     </td>
-                    <td><?= htmlspecialchars($entry['description'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($entry['description'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td>
     <a href="entry_form.php?id=<?= (int) $entry['id'] ?>">Edit</a>

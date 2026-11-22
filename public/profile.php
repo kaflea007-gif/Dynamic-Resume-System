@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please select an image.";
     } elseif ($_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
         $error = "Image upload failed. Please try again.";
+    } elseif (!is_uploaded_file($_FILES['avatar']['tmp_name'])) {
+        $error = "Invalid uploaded file.";
     } elseif ($_FILES['avatar']['size'] > 2 * 1024 * 1024) {
         $error = "Image must be smaller than 2 MB.";
     } else {
@@ -26,12 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $allowed = [
             'image/jpeg',
-            'image/png',
-            'image/webp'
+            'image/png'
         ];
 
         if (!in_array($mime, $allowed, true)) {
-            $error = "Only JPG, PNG and WEBP images are allowed.";
+            $error = "Only JPG and PNG images are allowed.";
         } else {
 
             $imageInfo = getimagesize($tmp);
@@ -150,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label>Select profile image:</label>
         <input type="file" name="avatar"
-               accept="image/jpeg,image/png,image/webp" required>
+               accept="image/jpeg,image/png" required>
 
         <br><br>
 

@@ -13,7 +13,7 @@ $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $isEditing = $id !== null && $id !== false && $id > 0;
 
 $entry = [
-    'category' => '',
+    'entry_type' => '',
     'title' => '',
     'organization' => '',
     'start_date' => '',
@@ -43,7 +43,7 @@ if ($isEditing) {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $category = trim($_POST['category'] ?? '');
+    $entry_type = trim($_POST['entry_type'] ?? '');
     $title = trim($_POST['title'] ?? '');
     $organization = trim($_POST['organization'] ?? '');
     $start_date = $_POST['start_date'] ?? '';
@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $description = trim($_POST['description'] ?? '');
 
     if (
-        $category === '' ||
+        $entry_type === '' ||
         $title === '' ||
         $organization === '' ||
         $start_date === '' ||
@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($isEditing) {
             $stmt = $pdo->prepare(
                 "UPDATE resume_entries
-                 SET category = :category,
+                 SET entry_type = :entry_type,
                      title = :title,
                      organization = :organization,
                      start_date = :start_date,
@@ -75,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
 
             $stmt->execute([
-                'category' => $category,
+                'entry_type' => $entry_type,
                 'title' => $title,
                 'organization' => $organization,
                 'start_date' => $start_date,
@@ -89,14 +89,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             $stmt = $pdo->prepare(
                 "INSERT INTO resume_entries
-                (user_id, category, title, organization, start_date, end_date, description)
+                (user_id, entry_type, title, organization, start_date, end_date, description)
                 VALUES
-                (:user_id, :category, :title, :organization, :start_date, :end_date, :description)"
+                (:user_id, :entry_type, :title, :organization, :start_date, :end_date, :description)"
             );
 
             $stmt->execute([
                 'user_id' => $_SESSION['user_id'],
-                'category' => $category,
+                'entry_type' => $entry_type,
                 'title' => $title,
                 'organization' => $organization,
                 'start_date' => $start_date,
@@ -108,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         $entry = [
-            'category' => $category,
+            'entry_type' => $entry_type,
             'title' => $title,
             'organization' => $organization,
             'start_date' => $start_date,
@@ -145,12 +145,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST">
 
         <label>Category:</label>
-        <select name="category" required>
+        <select name="entry_type" required>
             <option value="">Select Category</option>
-            <?php foreach (['Education', 'Experience', 'Project', 'Skill'] as $categoryOption): ?>
-                <option value="<?= $categoryOption ?>"
-                    <?= $entry['category'] === $categoryOption ? 'selected' : '' ?>>
-                    <?= $categoryOption ?>
+            <?php foreach (['education', 'experience', 'project'] as $entry_typeOption): ?>
+                <option value="<?= $entry_typeOption ?>"
+                    <?= $entry['entry_type'] === $entry_typeOption ? 'selected' : '' ?>>
+                    <?= $entry_typeOption ?>
                 </option>
             <?php endforeach; ?>
         </select>
