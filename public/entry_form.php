@@ -1,5 +1,6 @@
 
 <?php
+
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/database.php';
 
@@ -8,7 +9,6 @@ requireLogin();
 $error = "";
 $success = "";
 
-// Check whether this is an edit request.
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $isEditing = $id !== null && $id !== false && $id > 0;
 
@@ -21,7 +21,6 @@ $entry = [
     'description' => ''
 ];
 
-// Load existing entry for editing.
 if ($isEditing) {
     $stmt = $pdo->prepare(
         "SELECT * FROM resume_entries
@@ -50,14 +49,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $end_date = $_POST['end_date'] ?? '';
     $description = trim($_POST['description'] ?? '');
 
+    $entry = [
+        'entry_type' => $entry_type,
+        'title' => $title,
+        'organization' => $organization,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
+        'description' => $description
+    ];
+
+    $validTypes = ['education', 'experience', 'project'];
+
     if (
-        $entry_type === '' ||
+        !in_array($entry_type, $validTypes, true) ||
         $title === '' ||
         $organization === '' ||
         $start_date === '' ||
         $description === ''
     ) {
-        $error = "Please fill in all required fields.";
+        $error = "Please enter valid information in all required fields.";
+    } elseif (
+        strlen($title) > 120 ||
+        strlen($organization) > 120
+    ) {
+        $error = "Title and organization must not exceed 120 characters.";
+    } elseif (
+        !DateTime::createFromFormat('!Y-m-d', $start_date) ||
+        DateTime::createFromFormat('!Y-m-d', $start_date)->format('Y-m-d') !== $start_date
+    ) {
+        $error = "Please enter a valid start date.";
+    } elseif (
+        $end_date !== '' &&
+        (
+            !DateTime::createFromFormat('!Y-m-d', $end_date) ||
+            DateTime::createFromFormat('!Y-m-d', $end_date)->format('Y-m-d') !== $end_date
+        )
+    ) {
+        $error = "Please enter a valid end date.";
     } elseif ($end_date !== '' && $end_date < $start_date) {
         $error = "End date cannot be before start date.";
     } else {
@@ -86,6 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]);
 
             $success = "Resume entry updated successfully!";
+
         } else {
             $stmt = $pdo->prepare(
                 "INSERT INTO resume_entries
@@ -106,94 +135,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $success = "Resume entry added successfully!";
         }
-
-        $entry = [
-            'entry_type' => $entry_type,
-            'title' => $title,
-            'organization' => $organization,
-            'start_date' => $start_date,
-            'end_date' => $end_date,
-            'description' => $description
-        ];
     }
 }
+
+$pageTitle = ($isEditing ? 'Edit' : 'Add') . ' Resume Entry';
+require_once __DIR__ . '/../includes/header.php';
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $isEditing ? 'Edit' : 'Add' ?> Resume Entry</title>
-</head>
-<body>
+<h1><?= $isEditing ? 'Edit' : 'Add' ?> Resume Entry</h1>
 
-    <h1><?= $isEditing ? 'Edit' : 'Add' ?> Resume Entry</h1>
+<?php if ($error !== ""): ?>
+    <p class="error"><?= escape($error) ?></p>
+<?php endif; ?>
 
-    <?php if ($error !== ""): ?>
-        <p style="color: red;">
-            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
-        </p>
-    <?php endif; ?>
+<?php if ($success !== ""): ?>
+    <p class="success"><?= escape($success) ?></p>
+<?php endif; ?>
 
-    <?php if ($success !== ""): ?>
-        <p style="color: green;">
-            <?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
-        </p>
-    <?php endif; ?>
+<form method="POST">
 
-    <form method="POST">
+    <label>Category:</label>
+    <select name="entry_type" required>
+        <option value="">Select Category</option>
 
-        <label>Category:</label>
-        <select name="entry_type" required>
-            <option value="">Select Category</option>
-            <?php foreach (['education', 'experience', 'project'] as $entry_typeOption): ?>
-                <option value="<?= $entry_typeOption ?>"
-                    <?= $entry['entry_type'] === $entry_typeOption ? 'selected' : '' ?>>
-                    <?= $entry_typeOption ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+        <?php foreach (['education', 'experience', 'project'] as $type): ?>
+            <option value="<?= escape($type) ?>"
+                <?= $entry['entry_type'] === $type ? 'selected' : '' ?>>
+                <?= escape(ucfirst($type)) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
 
-        <br><br>
+    <br><br>
 
-        <label>Title:</label>
-        <input type="text" name="title"
-            value="<?= htmlspecialchars($entry['title'], ENT_QUOTES, 'UTF-8') ?>" required>
+    <label>Title:</label>
+    <input type="text" name="title" maxlength="120"
+           value="<?= escape($entry['title']) ?>" required>
 
-        <br><br>
+    <br><br>
 
-        <label>Organization:</label>
-        <input type="text" name="organization"
-            value="<?= htmlspecialchars($entry['organization'], ENT_QUOTES, 'UTF-8') ?>" required>
+    <label>Organization:</label>
+    <input type="text" name="organization" maxlength="120"
+           value="<?= escape($entry['organization']) ?>" required>
 
-        <br><br>
+    <br><br>
 
-        <label>Start Date:</label>
-        <input type="date" name="start_date"
-            value="<?= htmlspecialchars($entry['start_date'], ENT_QUOTES, 'UTF-8') ?>" required>
+    <label>Start Date:</label>
+    <input type="date" name="start_date"
+           value="<?= escape($entry['start_date']) ?>" required>
 
-        <br><br>
+    <br><br>
 
-        <label>End Date:</label>
-        <input type="date" name="end_date"
-            value="<?= htmlspecialchars($entry['end_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+    <label>End Date:</label>
+    <input type="date" name="end_date"
+           value="<?= escape($entry['end_date'] ?? '') ?>">
 
-        <br><br>
+    <br><br>
 
-        <label>Description:</label>
-        <textarea name="description" required><?= htmlspecialchars($entry['description'], ENT_QUOTES, 'UTF-8') ?></textarea>
+    <label>Description:</label>
+    <textarea name="description" required><?= escape($entry['description']) ?></textarea>
 
-        <br><br>
+    <br><br>
 
-        <button type="submit">
-            <?= $isEditing ? 'Update Entry' : 'Save Entry' ?>
-        </button>
+    <button type="submit">
+        <?= $isEditing ? 'Update Entry' : 'Save Entry' ?>
+    </button>
 
-    </form>
+</form>
 
-    <br>
-    <a href="admin.php">Back to Dashboard</a>
+<br>
 
-</body>
-</html>
+<a href="admin.php">Back to Dashboard</a>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

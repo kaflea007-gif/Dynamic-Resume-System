@@ -1,5 +1,6 @@
 
 <?php
+
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/database.php';
 
@@ -22,16 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $tmp = $_FILES['avatar']['tmp_name'];
 
-        // Check actual MIME type.
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($tmp);
 
-        $allowed = [
-            'image/jpeg',
-            'image/png'
-        ];
-
-        if (!in_array($mime, $allowed, true)) {
+        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
             $error = "Only JPG and PNG images are allowed.";
         } else {
 
@@ -41,18 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Invalid image file.";
             } else {
 
-                // Load image using GD.
-                switch ($mime) {
-                    case 'image/jpeg':
-                        $source = imagecreatefromjpeg($tmp);
-                        break;
-                    case 'image/png':
-                        $source = imagecreatefrompng($tmp);
-                        break;
-                    case 'image/webp':
-                        $source = imagecreatefromwebp($tmp);
-                        break;
-                }
+                $source = ($mime === 'image/jpeg')
+                    ? imagecreatefromjpeg($tmp)
+                    : imagecreatefrompng($tmp);
 
                 if (!$source) {
                     $error = "Could not process the image.";
@@ -61,12 +47,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $width = imagesx($source);
                     $height = imagesy($source);
 
-                    // Create a square 150 x 150 thumbnail.
                     $thumbnail = imagecreatetruecolor(150, 150);
 
+                    // White background for transparent PNG images.
+                    $white = imagecolorallocate($thumbnail, 255, 255, 255);
+                    imagefill($thumbnail, 0, 0, $white);
+
                     $side = min($width, $height);
-                    $sourceX = (int) (($width - $side) / 2);
-                    $sourceY = (int) (($height - $side) / 2);
+                    $sourceX = (int)(($width - $side) / 2);
+                    $sourceY = (int)(($height - $side) / 2);
 
                     imagecopyresampled(
                         $thumbnail,
@@ -85,14 +74,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (imagejpeg($thumbnail, $uploadPath, 85)) {
 
-                        // Get previous avatar.
                         $stmt = $pdo->prepare(
                             "SELECT avatar_path FROM users WHERE id = :id"
                         );
-                        $stmt->execute(['id' => $_SESSION['user_id']]);
+
+                        $stmt->execute([
+                            'id' => $_SESSION['user_id']
+                        ]);
+
                         $oldAvatar = $stmt->fetchColumn();
 
-                        // Save new avatar path.
                         $stmt = $pdo->prepare(
                             "UPDATE users SET avatar_path = :path WHERE id = :id"
                         );
@@ -102,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'id' => $_SESSION['user_id']
                         ]);
 
-                        // Remove previous uploaded avatar.
                         if (
                             $oldAvatar &&
                             strpos($oldAvatar, 'uploads/') === 0 &&
@@ -112,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
 
                         $success = "Profile image uploaded successfully!";
+
                     } else {
                         $error = "Could not save thumbnail.";
                     }
@@ -123,44 +114,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$pageTitle = 'Profile Image';
+require_once __DIR__ . '/../includes/header.php';
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile Image</title>
-</head>
-<body>
+<h1>Upload Profile Image</h1>
 
-    <h1>Upload Profile Image</h1>
+<?php if ($error !== ""): ?>
+    <p class="error"><?= escape($error) ?></p>
+<?php endif; ?>
 
-    <?php if ($error !== ""): ?>
-        <p style="color:red;">
-            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
-        </p>
-    <?php endif; ?>
+<?php if ($success !== ""): ?>
+    <p class="success"><?= escape($success) ?></p>
+<?php endif; ?>
 
-    <?php if ($success !== ""): ?>
-        <p style="color:green;">
-            <?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
-        </p>
-    <?php endif; ?>
+<form method="POST" enctype="multipart/form-data">
 
-    <form method="POST" enctype="multipart/form-data">
+    <label>Select profile image:</label>
 
-        <label>Select profile image:</label>
-        <input type="file" name="avatar"
-               accept="image/jpeg,image/png" required>
+    <input type="file"
+           name="avatar"
+           accept="image/jpeg,image/png"
+           required>
 
-        <br><br>
+    <br><br>
 
-        <button type="submit">Upload Image</button>
+    <button type="submit">Upload Image</button>
 
-    </form>
+</form>
 
-    <br>
-    <a href="admin.php">Back to Dashboard</a>
+<br>
 
-</body>
-</html>
+<a href="admin.php">Back to Dashboard</a>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
