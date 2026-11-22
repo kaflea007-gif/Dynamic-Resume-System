@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/database.php';
 
 $stmt = $pdo->query("SELECT * FROM users ORDER BY id ASC LIMIT 1");
@@ -24,27 +25,38 @@ $groups = [
     'project' => 'Projects'
 ];
 
-function e($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-}
 ?>
 
         <header class="profile">
             <?php if (!empty($user['avatar_path']) && file_exists(__DIR__ . '/../' . $user['avatar_path'])): ?>
-                <img class="avatar" src="../<?= e($user['avatar_path']) ?>" alt="Profile photo">
+                <img class="avatar" src="../<?= escape($user['avatar_path']) ?>" alt="Profile photo">
             <?php else: ?>
                 <div class="avatar placeholder">Profile</div>
             <?php endif; ?>
 
-            <h1><?= e($user['full_name']) ?></h1>
-            <h2><?= e($user['headline']) ?></h2>
-            <p><?= nl2br(e($user['summary'])) ?></p>
-            <p><?= e($user['email']) ?></p>
+            <h1><?= escape($user['full_name']) ?></h1>
+            <h2><?= escape($user['headline']) ?></h2>
+            <p><?= nl2br(escape($user['summary'])) ?></p>
+            <p><?= escape($user['email']) ?></p>
         </header>
+
+        <section class="skills">
+            <h2>Technical Skills</h2>
+            <ul>
+                <li>C++</li>
+                <li>PHP (Beginner)</li>
+                <li>HTML</li>
+                <li>CSS</li>
+                <li>MySQL</li>
+                <li>Git and GitHub</li>
+                <li>Object-Oriented Programming</li>
+            </ul>
+        </section>
+
 
         <?php foreach ($groups as $type => $heading): ?>
             <section>
-                <h2><?= e($heading) ?></h2>
+                <h2><?= escape($heading) ?></h2>
 
                 <?php
                 $found = false;
@@ -53,18 +65,18 @@ function e($value) {
                     $found = true;
                 ?>
                     <article class="entry">
-                        <h3><?= e($entry['title']) ?></h3>
-                        <h4><?= e($entry['organization']) ?></h4>
+                        <h3><?= escape($entry['title']) ?></h3>
+                        <h4><?= escape($entry['organization']) ?></h4>
                         <p class="date">
-                            <?= e($entry['start_date']) ?> —
-                            <?= $entry['end_date'] ? e($entry['end_date']) : 'Present' ?>
+                            <?= escape($entry['start_date']) ?> —
+                            <?= $entry['end_date'] ? escape($entry['end_date']) : 'Present' ?>
                         </p>
-                        <p><?= nl2br(e($entry['description'])) ?></p>
+                        <p><?= nl2br(escape($entry['description'])) ?></p>
                     </article>
                 <?php endforeach; ?>
 
                 <?php if (!$found): ?>
-                    <p class="empty">No <?= strtolower(e($heading)) ?> added yet.</p>
+                    <p class="empty">No <?= strtolower(escape($heading)) ?> added yet.</p>
                 <?php endif; ?>
             </section>
         <?php endforeach; ?>

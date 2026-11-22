@@ -4,6 +4,9 @@
 -- ------------------------------------------------------
 -- Server version	10.4.28-MariaDB
 
+CREATE DATABASE IF NOT EXISTS `resume_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `resume_db`;
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -43,7 +46,7 @@ CREATE TABLE `resume_entries` (
 
 LOCK TABLES `resume_entries` WRITE;
 /*!40000 ALTER TABLE `resume_entries` DISABLE KEYS */;
-INSERT INTO `resume_entries` VALUES (3,1,'education','Intelligence Computing','Dong-Eui University','2025-03-23',NULL,'I am currently studying in 4th semester');
+INSERT INTO `resume_entries` VALUES (3,1,'education','Intelligence Computing','Dong-Eui University','2025-03-23',NULL,'Currently pursuing a bachelor's degree in Intelligence Computing.');
 /*!40000 ALTER TABLE `resume_entries` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -73,7 +76,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Anish','admin@example.com','$2y$10$XyUXxqmiVO9G2OS0SVRQDOO8.zs5pAg.1GVR1Vp5b1jL2X.msVELO','uploads/avatar_1_63d39dae25252c4a.jpg','Intelligence Computing Student','');
+INSERT INTO `users` VALUES (1,'Anish','admin@example.com','$2y$10$OB5FMqN5ib3HUqVBo0DTaes.bvakntsbSUuO7NVezUI1iynCfnLMy','uploads/avatar_1_63d39dae25252c4a.jpg','Intelligence Computing Student','Intelligence Computing student at Dong-Eui University in South Korea. Interested in software development, web technologies, databases, and practical programming. Building experience through C++ and PHP/MySQL academic projects.');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
