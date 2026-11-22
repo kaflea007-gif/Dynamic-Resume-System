@@ -1,0 +1,14 @@
+# Local database credentials
+config/database.php
+
+# Environment secrets
+.env
+
+# Uploaded user files
+uploads/*
+
+# Keep uploads folder in Git
+!uploads/.gitkeep
+
+# Operating system files
+.DS_Store
