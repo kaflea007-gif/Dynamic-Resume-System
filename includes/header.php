@@ -1,6 +1,10 @@
-
 <?php
+/**
+ * Shared document head and navigation bar (public + admin pages).
+ * Set $pageTitle before including.
+ */
 $pageTitle = $pageTitle ?? 'Dynamic Resume System';
+$loggedIn  = function_exists('isLoggedIn') && isLoggedIn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,7 +15,16 @@ $pageTitle = $pageTitle ?? 'Dynamic Resume System';
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-<header>
-    <h1>Dynamic Resume System</h1>
+<header class="site-header">
+    <a class="brand" href="index.php">Dynamic Resume</a>
+    <nav>
+        <a href="index.php">Public CV</a>
+        <?php if ($loggedIn): ?>
+            <a href="admin.php">Dashboard</a>
+            <a href="logout.php">Logout</a>
+        <?php else: ?>
+            <a href="login.php">Admin Login</a>
+        <?php endif; ?>
+    </nav>
 </header>
 <main class="container">

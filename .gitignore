@@ -1,5 +1,5 @@
 # Local database credentials
-config/database.php
+# (config/database.php is included in the submission)
 
 # Environment secrets
 .env
@@ -12,3 +12,4 @@ uploads/*
 
 # Operating system files
 .DS_Store
+/config/database.php
