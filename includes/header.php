@@ -1,8 +1,4 @@
 <?php
-/**
- * Shared document head and navigation bar (public + admin pages).
- * Set $pageTitle before including.
- */
 $pageTitle = $pageTitle ?? 'Dynamic Resume System';
 $loggedIn  = function_exists('isLoggedIn') && isLoggedIn();
 ?>

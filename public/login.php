@@ -1,10 +1,11 @@
 <?php
+// Admin login.
 session_start();
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/database.php';
 
-// Already authenticated users go straight to the dashboard.
+// already logged in
 if (isset($_SESSION['user_id'])) {
     header('Location: admin.php');
     exit;
@@ -18,6 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($email === '' || $password === '') {
         $error = 'Please enter both email and password.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
     } else {
         $stmt = $pdo->prepare(
             'SELECT id, full_name, email, password FROM users WHERE email = :email'

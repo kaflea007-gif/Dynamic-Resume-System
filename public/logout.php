@@ -1,10 +1,10 @@
 <?php
 session_start();
 
-// Remove all session variables.
+// clear session data
 $_SESSION = [];
 
-// Expire the session cookie in the browser.
+// delete the cookie
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
     setcookie(
@@ -18,7 +18,7 @@ if (ini_get('session.use_cookies')) {
     );
 }
 
-// Destroy the session and return to the login page.
+// end session
 session_destroy();
 header('Location: login.php');
 exit;

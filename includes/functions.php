@@ -1,14 +1,11 @@
 <?php
-/**
- * Shared helper utilities: session/auth helpers, output escaping,
- * CSRF protection, validation helpers and GD thumbnail generation.
- */
+// Helper functions.
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/* ---------- Authentication helpers ---------- */
+/* Auth */
 
 function isLoggedIn(): bool
 {
@@ -23,14 +20,14 @@ function requireLogin(): void
     }
 }
 
-/* ---------- Output escaping ---------- */
+/* Escaping */
 
 function escape($value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-/* ---------- Flash messages (post/redirect/get) ---------- */
+/* Flash messages */
 
 function setFlash(string $type, string $message): void
 {
@@ -44,7 +41,7 @@ function popFlash(): ?array
     return $flash;
 }
 
-/* ---------- CSRF protection ---------- */
+/* CSRF */
 
 function csrfToken(): string
 {
@@ -67,27 +64,43 @@ function verifyCsrf(): bool
         && hash_equals($_SESSION['csrf_token'], $sent);
 }
 
-/* ---------- Validation helpers ---------- */
+/* Validation */
 
-/** Character length (multibyte-safe when mbstring is available). */
+/** String length. */
 function strLength(string $value): int
 {
     return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
 }
 
-/** True only for a real calendar date in YYYY-MM-DD format. */
+/** Checks a YYYY-MM-DD date. */
 function isValidDate(string $date): bool
 {
     $dt = DateTime::createFromFormat('!Y-m-d', $date);
     return $dt !== false && $dt->format('Y-m-d') === $date;
 }
 
-/* ---------- Image processing (PHP GD) ---------- */
+/** Only allows http/https URLs. */
+function isValidHttpUrl(string $url): bool
+{
+    if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return false;
+    }
+    return in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
+}
 
-/**
- * Create a centered, square $size x $size JPEG thumbnail with GD.
- * Transparent PNG areas are filled with white.
- */
+/** Date as "Mar 2025". */
+function formatMonthYear(?string $date): string
+{
+    if (!$date) {
+        return '';
+    }
+    $dt = DateTime::createFromFormat('!Y-m-d', $date);
+    return $dt ? $dt->format('M Y') : $date;
+}
+
+/* Images (GD) */
+
+/** Square 150x150 JPEG thumbnail. */
 function createThumbnail(string $sourcePath, string $mime, string $destPath, int $size = 150): bool
 {
     $source = match ($mime) {
@@ -98,6 +111,23 @@ function createThumbnail(string $sourcePath, string $mime, string $destPath, int
 
     if (!$source) {
         return false;
+    }
+
+    // fix phone photo rotation
+    if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
+        $exif  = @exif_read_data($sourcePath);
+        $angle = match ($exif['Orientation'] ?? 1) {
+            3 => 180,
+            6 => -90,
+            8 => 90,
+            default => 0,
+        };
+        if ($angle !== 0) {
+            $rotated = imagerotate($source, $angle, 0);
+            if ($rotated) {
+                $source = $rotated;
+            }
+        }
     }
 
     $width  = imagesx($source);
@@ -118,17 +148,12 @@ function createThumbnail(string $sourcePath, string $mime, string $destPath, int
     return imagejpeg($thumb, $destPath, 85);
 }
 
-/**
- * Validate an uploaded avatar, build the 150x150 thumbnail, store its
- * relative path in the database and delete the previous avatar.
- *
- * @return array{0: bool, 1: string} [success, message]
- */
+/** Validates and saves the uploaded avatar. Returns [success, message]. */
 function handleAvatarUpload(PDO $pdo, int $userId, array $file): array
 {
     $maxBytes = 2 * 1024 * 1024; // 2 MB
 
-    // 1. Upload error and payload auditing.
+    // upload error + is_uploaded_file
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         return [false, ($file['error'] ?? 0) === UPLOAD_ERR_INI_SIZE || ($file['error'] ?? 0) === UPLOAD_ERR_FORM_SIZE
             ? 'Image must be smaller than 2 MB.'
@@ -138,12 +163,12 @@ function handleAvatarUpload(PDO $pdo, int $userId, array $file): array
         return [false, 'Invalid uploaded file.'];
     }
 
-    // 2. Size limit.
+    // size limit
     if ($file['size'] > $maxBytes) {
         return [false, 'Image must be smaller than 2 MB.'];
     }
 
-    // 3. Server-side MIME verification (never trust client headers/extension).
+    // MIME check with finfo
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime  = $finfo->file($file['tmp_name']);
     if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
@@ -155,7 +180,7 @@ function handleAvatarUpload(PDO $pdo, int $userId, array $file): array
         return [false, 'Invalid image file or image dimensions too large.'];
     }
 
-    // 4. Random filename inside uploads/ (original name is discarded).
+    // random filename
     $uploadDir = __DIR__ . '/../uploads/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
@@ -164,12 +189,12 @@ function handleAvatarUpload(PDO $pdo, int $userId, array $file): array
     $destination  = $uploadDir . $filename;
     $relativePath = 'uploads/' . $filename;
 
-    // 5. GD thumbnail generation.
+    // GD thumbnail
     if (!createThumbnail($file['tmp_name'], $mime, $destination, 150)) {
         return [false, 'Could not process the image.'];
     }
 
-    // Persist the new path, then remove the old file.
+    // save path, delete old file
     try {
         $stmt = $pdo->prepare('SELECT avatar_path FROM users WHERE id = :id');
         $stmt->execute(['id' => $userId]);

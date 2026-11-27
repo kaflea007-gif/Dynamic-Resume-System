@@ -1,6 +1,6 @@
 # Dynamic Resume System
 
-A PHP 8+ / MySQL (PDO) portfolio CMS: a read-only public CV plus a session-protected admin dashboard with full CRUD, skills management and GD-processed profile thumbnails.
+Web Programming II - Assignment 2. A PHP 8+ / MySQL (PDO) portfolio CMS: a read-only public resume plus a session-protected admin dashboard with full CRUD and GD-processed profile thumbnails.
 
 ## Admin login (seed account)
 
@@ -8,33 +8,39 @@ A PHP 8+ / MySQL (PDO) portfolio CMS: a read-only public CV plus a session-prote
 |-------|----------|
 | `admin@example.com` | `Admin@12345` |
 
+Passwords are stored only as bcrypt hashes (`password_hash()` / `password_verify()`).
+
 ## Requirements
-- PHP 8.0+ with the `pdo_mysql`, `gd` and `fileinfo` extensions
+- PHP 8.0+ with `pdo_mysql`, `gd` and `fileinfo` (all enabled in XAMPP)
 - MySQL or MariaDB
 
-## Installation
-1. Import `resume_db.sql` (phpMyAdmin > Import, or `mysql -u root -p < resume_db.sql`). It creates the `resume_db` database, tables and sample data.
-2. Edit the credentials in `config/database.php` if your MySQL user is not `root` with an empty password.
-3. Make sure `uploads/` is writable by the web server.
+## Setup (macOS + XAMPP)
+1. Copy this folder to `/Applications/XAMPP/xamppfiles/htdocs/dynamic_resume`.
+2. Start **Apache** and **MySQL** in the XAMPP Control Panel.
+3. Open http://localhost/phpmyadmin > **Import** > choose `resume_db.sql` > **Go**.
+   (Re-importing is safe: it recreates the tables, so data is never duplicated - but it resets any changes you made.)
+4. Open http://localhost/dynamic_resume/public/index.php (admin: http://localhost/dynamic_resume/public/login.php).
 
-## Run locally
-From the project directory:
+### Database credentials
+`config/database.php` uses the XAMPP defaults (`root`, empty password) - no secrets are stored in it. If your MySQL uses another user/password, create `config/database.local.php` that sets `$username` and `$password` (same variable names as in `database.php`). It overrides the defaults and must never be committed or submitted.
 
-```bash
-php -S localhost:8000
-```
-
-Open http://localhost:8000/public/ (admin: http://localhost:8000/public/login.php).
+### Uploads
+`uploads/` must be writable by the web server. If uploads fail on macOS:
+`chmod -R 777 /Applications/XAMPP/xamppfiles/htdocs/dynamic_resume/uploads`
 
 ## Structure
-- `config/database.php` - PDO connection (exceptions, assoc fetch, real prepares)
+- `config/database.php` - PDO connection (exceptions, assoc fetch, real prepares, try/catch)
 - `includes/` - `functions.php` (escaping, CSRF, validation, GD thumbnail + upload handling), `header.php`, `footer.php`
-- `public/` - `index.php` (public CV), `login.php`, `logout.php`, `admin.php` (dashboard, avatar upload, skills), `entry_form.php` (create/edit), `delete_entry.php`
-- `uploads/` - GD-generated 150x150 thumbnails
+- `public/` - `index.php` (public CV), `login.php`, `logout.php`, `admin.php` (profile, portrait upload, entries table, skills), `entry_form.php` (create/edit), `delete_entry.php`, `assets/css/style.css`
+- `uploads/` - GD-generated 150x150 thumbnails (`.htaccess` blocks script execution)
 - `resume_db.sql` - schema (`users`, `resume_entries`, `skills`) and sample records
 
 ## Security notes
-- All queries use PDO prepared statements; all output goes through `htmlspecialchars()`.
-- Passwords use `password_hash()` / `password_verify()`; the session ID is regenerated on login.
-- Uploads: error-code audit, `is_uploaded_file()`, 2 MB cap, `finfo` MIME check (JPEG/PNG only), random filenames, GD resize to 150x150, old file removed with `unlink()`.
-- POST forms are protected with a CSRF token.
+- All queries use PDO prepared statements; all output goes through `htmlspecialchars(..., ENT_QUOTES, 'UTF-8')`.
+- `session_regenerate_id(true)` on login; every admin script checks the session first and redirects to `login.php`.
+- Uploads: `UPLOAD_ERR_OK` check, `is_uploaded_file()`, 2 MB cap, `finfo` MIME check (JPEG/PNG only), random filenames, GD resize to 150x150, old file removed with `unlink()`.
+- POST forms use a CSRF token; project links must be http(s) URLs.
+
+## Sample-data notes
+- Project start dates in the seed data are placeholders; the public page does not show project dates.
+- No work experience is seeded (the public page shows its empty-state notice). Add real jobs in the dashboard.

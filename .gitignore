@@ -1,15 +1,13 @@
-# Local database credentials
-# (config/database.php is included in the submission)
+# Private local database credentials (never commit or submit)
+config/database.local.php
 
 # Environment secrets
 .env
 
-# Uploaded user files
+# Uploaded files (keep the folder itself)
 uploads/*
-
-# Keep uploads folder in Git
 !uploads/.gitkeep
+!uploads/.htaccess
 
 # Operating system files
 .DS_Store
-/config/database.php

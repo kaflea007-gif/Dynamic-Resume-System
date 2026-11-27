@@ -156,3 +156,33 @@ td.actions form { display: inline; }
 .skill-admin-list { list-style: none; margin-bottom: 10px; }
 .skill-admin-list li { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
 .skill-admin-list form { display: inline; }
+
+/* ---------- Additions: projects, skill levels, mobile polish ---------- */
+.tech { font-size: 14px; color: #52606d; margin-top: 6px; }
+.github-link {
+    display: inline-block; margin-top: 6px; color: #2874a6; font-weight: 600; text-decoration: none;
+}
+.github-link:hover { text-decoration: underline; }
+
+.skills li { display: inline-flex; align-items: center; gap: 8px; }
+.level { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: #fff; color: #52606d; }
+.level-intermediate { background: #1f5f8b; color: #fff; }
+
+.entry p + p { margin-top: 6px; }
+.panel h2 { font-size: 20px; margin-bottom: 10px; color: #172b4d; }
+.panel + .panel { border-top: 2px solid #e8edf2; padding-top: 24px; }
+.btn-secondary { background: #6b7a89; }
+.btn-secondary:hover { background: #55636f; }
+form input[type=file] { display: block; margin: 8px 0; max-width: 100%; }
+.inline-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.inline-form > div { flex: 1 1 200px; }
+.inline-form button { margin-top: 0; }
+.muted { color: #77838f; font-size: 14px; }
+.skill-admin-list li { flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+    .site-header { padding: 0 16px; flex-wrap: wrap; gap: 6px; }
+    .site-header nav a:first-child { margin-left: 0; }
+    .avatar { width: 120px; height: 120px; }
+    table { font-size: 13px; }
+}
