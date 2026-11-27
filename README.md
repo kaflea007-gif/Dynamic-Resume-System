@@ -1,46 +1,79 @@
-# Dynamic Resume System
+# Dynamic Resume Management System
 
-Web Programming II - Assignment 2. A PHP 8+ / MySQL (PDO) portfolio CMS: a read-only public resume plus a session-protected admin dashboard with full CRUD and GD-processed profile thumbnails.
+**Web Programming II – Assignment 2**  
+**Dong-Eui University**
 
-## Admin login (seed account)
+## 1. Project Introduction
 
-| Email | Password |
-|-------|----------|
-| `admin@example.com` | `Admin@12345` |
+This project is a dynamic resume management system developed using PHP and MySQL.
 
-Passwords are stored only as bcrypt hashes (`password_hash()` / `password_verify()`).
+It allows an administrator to manage resume information through a web interface. The public page displays the resume, including personal information, education, skills, projects, and work experience.
 
-## Requirements
-- PHP 8.0+ with `pdo_mysql`, `gd` and `fileinfo` (all enabled in XAMPP)
-- MySQL or MariaDB
+The main purpose of this project is to practice PHP, database operations, form handling, file uploads, and session management.
 
-## Setup (macOS + XAMPP)
-1. Copy this folder to `/Applications/XAMPP/xamppfiles/htdocs/dynamic_resume`.
-2. Start **Apache** and **MySQL** in the XAMPP Control Panel.
-3. Open http://localhost/phpmyadmin > **Import** > choose `resume_db.sql` > **Go**.
-   (Re-importing is safe: it recreates the tables, so data is never duplicated - but it resets any changes you made.)
-4. Open http://localhost/dynamic_resume/public/index.php (admin: http://localhost/dynamic_resume/public/login.php).
+## 2. Technologies Used
 
-### Database credentials
-`config/database.php` uses the XAMPP defaults (`root`, empty password) - no secrets are stored in it. If your MySQL uses another user/password, create `config/database.local.php` that sets `$username` and `$password` (same variable names as in `database.php`). It overrides the defaults and must never be committed or submitted.
+- PHP
+- MySQL
+- HTML
+- CSS
+- PDO
+- XAMPP
 
-### Uploads
-`uploads/` must be writable by the web server. If uploads fail on macOS:
-`chmod -R 777 /Applications/XAMPP/xamppfiles/htdocs/dynamic_resume/uploads`
+## 3. Main Features
 
-## Structure
-- `config/database.php` - PDO connection (exceptions, assoc fetch, real prepares, try/catch)
-- `includes/` - `functions.php` (escaping, CSRF, validation, GD thumbnail + upload handling), `header.php`, `footer.php`
-- `public/` - `index.php` (public CV), `login.php`, `logout.php`, `admin.php` (profile, portrait upload, entries table, skills), `entry_form.php` (create/edit), `delete_entry.php`, `assets/css/style.css`
-- `uploads/` - GD-generated 150x150 thumbnails (`.htaccess` blocks script execution)
-- `resume_db.sql` - schema (`users`, `resume_entries`, `skills`) and sample records
+- Admin login and logout
+- Display resume information on a public page
+- Add, edit, and delete resume entries
+- Manage skills and skill levels
+- Update profile information
+- Upload and update a profile image
+- Store resume information in a MySQL database
+- Validate form input and uploaded images
 
-## Security notes
-- All queries use PDO prepared statements; all output goes through `htmlspecialchars(..., ENT_QUOTES, 'UTF-8')`.
-- `session_regenerate_id(true)` on login; every admin script checks the session first and redirects to `login.php`.
-- Uploads: `UPLOAD_ERR_OK` check, `is_uploaded_file()`, 2 MB cap, `finfo` MIME check (JPEG/PNG only), random filenames, GD resize to 150x150, old file removed with `unlink()`.
-- POST forms use a CSRF token; project links must be http(s) URLs.
+## 4. Project Structure
 
-## Sample-data notes
-- Project start dates in the seed data are placeholders; the public page does not show project dates.
-- No work experience is seeded (the public page shows its empty-state notice). Add real jobs in the dashboard.
+```text
+dynamic_resume/
+├── assets/
+├── config/
+├── includes/
+├── public/
+├── uploads/
+├── index.php
+└── resume_db.sql
+```
+
+## 5. Installation and Setup
+
+1. Install and open XAMPP.
+2. Start Apache and MySQL.
+3. Copy the project folder into the XAMPP `htdocs` directory.
+4. Open phpMyAdmin at `http://localhost/phpmyadmin`.
+5. Create a database named `resume_db`.
+6. Import the provided `resume_db.sql` file.
+7. Check the database settings in `config/database.php`.
+8. Open the project in your browser:
+
+   `http://localhost/dynamic_resume/public/index.php`
+
+## 6. Admin Login
+
+Use the following account for the provided sample database:
+
+- Email: `admin@example.com`
+- Password: `Admin@12345`
+
+These are sample project credentials. Change them before using the application outside the assignment environment.
+
+## 7. Project Files
+
+The `resume_db.sql` file contains the database structure and sample data needed to run the project.
+
+The `uploads` directory is used to store uploaded profile images.
+
+## 8. Learning Outcomes
+
+While developing this project, I practiced connecting PHP to MySQL using PDO, performing database CRUD operations, handling user sessions, validating form data, and uploading images.
+
+I also learned how different PHP files can work together to display and manage information dynamically.
